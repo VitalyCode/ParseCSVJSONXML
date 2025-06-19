@@ -86,6 +86,16 @@ public class Main {
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
+        finally {
+            try{
+               if(fileReader !=null){
+                   fileReader.close();
+               }
+            }
+            catch (IOException ex){
+                System.out.println(ex.getMessage());
+            }
+        }
         CSVReader csvReader = new CSVReader(fileReader);
         com.opencsv.bean.ColumnPositionMappingStrategy<Employee> strategyResult = new ColumnPositionMappingStrategy<>();
         strategyResult.setType(Employee.class);
@@ -105,8 +115,23 @@ public class Main {
     }
 
     public static void writeString(String json, String filePath) throws IOException {
-        try (FileWriter writer = new FileWriter(filePath)) {
+        FileWriter writer = null;
+        try{
+            writer = new FileWriter(filePath);
             writer.write(json);
+        }
+        catch (IOException ex){
+            System.out.println(ex.getMessage());
+        }
+        finally {
+            try {
+                if(writer !=null){
+                    writer.close();
+                }
+            }
+            catch (IOException ex){
+                System.out.println(ex.getMessage());
+            }
         }
     }
 }
