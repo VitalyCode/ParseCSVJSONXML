@@ -2,28 +2,25 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import io.basc.framework.env.Sys;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
-import javax.swing.text.Document;
-import javax.swing.text.Element;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException {
+        // Задача 1: CSV - JSON парсер
         String[] columnMapping = {"id", "firstName", "lastName", "country", "age"};
         String fileName = "data.csv";
         List<Employee> list = parseCSV(columnMapping, fileName);
@@ -35,9 +32,51 @@ public class Main {
         } catch (IOException e) {
             System.err.println("Ошибка записи в файл: " + e.getMessage());
         }
+
         // Задача 2: XML - JSON парсер
 
-        List<Employee> list2 = parseXML("data.xml");
+        // Нужно из XML файла сделать парсер в JSON
+
+        System.out.println("\r\nЗадача № 2");
+        List<Employee> listXML = parseXML("data.xml");
+        String result = listToJson(listXML);
+        writeString(result, "data2.json");
+    }
+
+    public static List<Employee> parseXML(String nameXML) throws IOException, ParserConfigurationException, SAXException {
+        /*
+           При реализации метода parseXML() вам необходимо получить экземпляр класса Document с использованием DocumentBuilderFactory и DocumentBuilder через метод parse().
+           Далее получите из объекта Document корневой узел Node с помощью метода getDocumentElement().
+           Из корневого узла извлеките список узлов NodeList с помощью метода getChildNodes(). Пройдитесь по списку узлов и получите из каждого из них Element. У элементов получите значения, с помощью которых создайте экземпляр класса Employee. Так как элементов может быть несколько, организуйте всю работу в цикле. Метод parseXML() должен возвращать список сотрудников.
+           С помощью ранее написанного метода listToJson() преобразуйте список в JSON и запишите его в файл c помощью метода writeString().
+         */
+        List<Employee> employees = new ArrayList<>();
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newDefaultInstance();
+        DocumentBuilder builder = builderFactory.newDocumentBuilder();
+        Document dopc = builder.parse(new File("data.xml"));
+        Node root = dopc.getDocumentElement();
+        System.out.println("Получаю корневой узел: " + root.getNodeName());
+        NodeList nodeList = root.getChildNodes(); // Получаю список узлов
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node node = nodeList.item(i);
+            if (Node.ELEMENT_NODE == node.getNodeType()) {
+                Element employee = (Element) node;
+                //============================
+                System.out.println("id - " + employee.getElementsByTagName("id").item(0).getTextContent());
+                System.out.println("firstName - " + employee.getElementsByTagName("firstName").item(0).getTextContent());
+                System.out.println("lastName - " + employee.getElementsByTagName("lastName").item(0).getTextContent());
+                System.out.println("country - " + employee.getElementsByTagName("country").item(0).getTextContent());
+                System.out.println("age - " + employee.getElementsByTagName("age").item(0).getTextContent());
+                Long id = Long.parseLong(employee.getElementsByTagName("id").item(0).getTextContent());
+                String firstName = employee.getElementsByTagName("firstName").item(0).getTextContent();
+                String lastName = employee.getElementsByTagName("lastName").item(0).getTextContent();
+                String country = employee.getElementsByTagName("country").item(0).getTextContent();
+                int age = Integer.parseInt(employee.getElementsByTagName("age").item(0).getTextContent());
+                Employee employee1 = new Employee(id, firstName, lastName, country, age);
+                employees.add(employee1);
+            }
+        }
+        return employees;
     }
 
     public static List parseCSV(String[] columnMapping, String nameFile) {
@@ -68,16 +107,6 @@ public class Main {
     public static void writeString(String json, String filePath) throws IOException {
         try (FileWriter writer = new FileWriter(filePath)) {
             writer.write(json);
-        }
-    }
-    public static List<Employee> parseXML(String filePath) throws ParserConfigurationException, IOException, SAXException {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-        Document document = documentBuilder.parse(new File(filePath));
-        Node root = document.getDocumentElement();
-        NodeList list = root.getChildNodes();
-        for(int i = 0;i<list.getLength();i++){
-
         }
     }
 }
